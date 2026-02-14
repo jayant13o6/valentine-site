@@ -3,6 +3,7 @@ const noBtn = document.getElementById('noBtn');
 const yesBtn = document.getElementById('yesBtn');
 
 let scale = 1;
+let yesBtnScale = 1;
 
 function moveAwayFromYes() {
 
@@ -49,8 +50,9 @@ noBtn.addEventListener('click', () => {
     if (scale < 0.35) {
         noBtn.innerText = "pls no 😭";
     }
-
-    yesBtn.style.transform = "scale(1.25)";
+    
+    yesBtnScale *=1.25;
+    yesBtn.style.transform = `scale(${yesBtnScale})`;
 });
 
 
