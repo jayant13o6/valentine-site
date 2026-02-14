@@ -92,11 +92,12 @@
             box-shadow: 0 14px 35px rgba(255, 77, 141, .7);
         }
 
-        #noBtn {
-            right: 18%;
-            background: #eee;
-            color: #333;
-        }
+#noBtn {
+    right: 18%;
+    background: #eee;
+    color: #333;
+    transform-origin: center;
+}
 
         #noBtn.shake {
             animation: shake .4s ease;
@@ -212,40 +213,70 @@
     </div>
 
     <script>
-        // --- NO BUTTON RUNS AWAY ---
-        const noBtn = document.getElementById('noBtn');
+        // --- INTELLIGENT NO BUTTON ---
+            const noBtn = document.getElementById('noBtn');
+            const yesBtn = document.getElementById('yesBtn');
 
-        function moveButton() {
-            const padding = 80;
-            const maxX = window.innerWidth - noBtn.offsetWidth - padding;
-            const maxY = window.innerHeight - noBtn.offsetHeight - padding;
+            let scale = 1;          // button size
+            let pushDistance = 0;   // how far it has moved
 
-            const x = Math.random() * maxX + padding / 2;
-            const y = Math.random() * maxY + padding / 2;
+            function moveAwayFromYes() {
 
-            noBtn.style.left = x + 'px';
-            noBtn.style.top = y + 'px';
-        }
+                const yesRect = yesBtn.getBoundingClientRect();
+                const noRect = noBtn.getBoundingClientRect();
+                const container = document.querySelector('.buttons').getBoundingClientRect();
 
-        // proximity detection
-        window.addEventListener('mousemove', (e) => {
-            const rect = noBtn.getBoundingClientRect();
-            const dx = e.clientX - (rect.left + rect.width / 2);
-            const dy = e.clientY - (rect.top + rect.height / 2);
-            const distance = Math.sqrt(dx * dx + dy * dy);
+                // center points
+                const yesX = yesRect.left + yesRect.width / 2;
+                const yesY = yesRect.top + yesRect.height / 2;
 
-            if (distance < 120) moveButton();
-        });
+                const noX = noRect.left + noRect.width / 2;
+                const noY = noRect.top + noRect.height / 2;
 
-        // if clicked accidentally
-        noBtn.addEventListener('click', () => {
-            noBtn.classList.add('shake');
-            setTimeout(() => noBtn.classList.remove('shake'), 400);
-            moveButton();
-        });
+                // direction vector (YES -> NO)
+                let dx = noX - yesX;
+                let dy = noY - yesY;
+
+                const length = Math.sqrt(dx * dx + dy * dy) || 1;
+                dx /= length;
+                dy /= length;
+
+                // move 5% of container each click
+                pushDistance += 0.05;
+
+                let newLeft = (noRect.left - container.left) + dx * container.width * 0.05;
+                let newTop = (noRect.top - container.top) + dy * container.height * 0.05;
+
+                // keep inside container
+                newLeft = Math.max(0, Math.min(container.width - noRect.width, newLeft));
+                newTop = Math.max(0, Math.min(container.height - noRect.height, newTop));
+
+                noBtn.style.left = newLeft + 'px';
+                noBtn.style.top = newTop + 'px';
+            }
+
+            // click behavior
+            noBtn.addEventListener('click', () => {
+
+                // shake
+                noBtn.classList.add('shake');
+                setTimeout(() => noBtn.classList.remove('shake'), 400);
+
+                // shrink 2%
+                scale *= 0.98;
+                noBtn.style.transform = `scale(${scale})`;
+
+                // move away
+                moveAwayFromYes();
+
+                // eventually becomes tiny 😂
+                if (scale < 0.35) {
+                    noBtn.innerText = "pls no 😭";
+                }
+            });
 
         // --- YES BUTTON SUCCESS ---
-        const yesBtn = document.getElementById('yesBtn');
+      //  const yesBtn = document.getElementById('yesBtn');
         const success = document.getElementById('successBox');
 
         yesBtn.addEventListener('click', () => {
